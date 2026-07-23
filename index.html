@@ -289,6 +289,12 @@
   .dialogo-legend { color:#e0dada; }
   .parentesis-legend { color:var(--oro); }
   .transicion-legend { color:rgba(200,196,196,0.4); }
+  /* CONSULTAR CON CLAUDE */
+  .claude-consult-panel { background:var(--negro-card); border:1px solid rgba(65,174,214,0.15); border-radius:6px; padding:16px; margin-top:20px; }
+  .claude-consult-panel .panel-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--celeste); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .claude-consult-panel textarea { width:100%; background:var(--negro-hover); border:1px solid rgba(65,174,214,0.2); border-radius:4px; padding:10px 12px; color:var(--blanco); font-size:12px; font-family:'Montserrat',sans-serif; resize:none; outline:none; min-height:70px; line-height:1.6; margin-bottom:10px; }
+  .claude-consult-panel textarea:focus { border-color:var(--celeste); }
+  .claude-copied { display:none; font-size:10px; letter-spacing:1px; color:#7ab47a; margin-left:10px; }
   @keyframes dots { 0%,20%{content:''} 40%{content:'.'} 60%{content:'..'} 80%,100%{content:'...'} }
   ::-webkit-scrollbar { width:4px; height:4px; }
   ::-webkit-scrollbar-track { background:var(--negro); }
@@ -416,31 +422,21 @@
           </div>
         </div>
 
-        <!-- IA TRATAMIENTO -->
-        <div style="display:flex;flex-direction:column;gap:0;height:calc(100vh - 280px);">
-          <div class="ai-panel" style="flex:1;height:auto;">
-            <div class="panel-header">IA · Desarrollo de historia</div>
-            <div class="ai-messages" id="tratamiento-messages">
-              <div class="ai-msg assistant">
-                <div class="msg-label">ADN · Consultor</div>
-                Hola, More. Este es tu espacio de desarrollo. Escribí libremente — la historia como te sale, las imágenes que tenés, las preguntas que te hacés.<br><br>
-                Voy a leer lo que escribís y voy a preguntarte o señalarte cosas cuando lo vea necesario. Especialmente sobre el conflicto, que sé que a veces cuesta encontrarlo.<br><br>
-                Cuando quieras que analice lo que tenés escrito, presioná el botón de abajo.
-              </div>
+        <!-- CONSULTAR CON CLAUDE - TRATAMIENTO -->
+        <div style="display:flex;flex-direction:column;height:calc(100vh - 280px);">
+          <div class="claude-consult-panel" style="flex:1;display:flex;flex-direction:column;">
+            <div class="panel-label">◎ Consultar con Claude</div>
+            <p style="font-size:11px;color:var(--texto-dim);line-height:1.7;margin-bottom:12px;">Escribí tu duda sobre el tratamiento y Claude te va a ayudar con el conflicto, la estructura, las preguntas — lo que necesités.</p>
+            <textarea id="claude-tratamiento-input" placeholder="Ej: ¿Está claro el conflicto? ¿Cómo puedo fortalecer la premisa? ¿Qué le falta a esta historia?" style="flex:1;"></textarea>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <button class="ai-suggestion-chip" onclick="setClaudeInput('tratamiento','¿Cuál es el conflicto central de esta historia? ¿Lo ves claro?')">¿Dónde está el conflicto?</button>
+              <button class="ai-suggestion-chip" onclick="setClaudeInput('tratamiento','¿Qué le falta a esta historia para funcionar dramáticamente?')">¿Qué le falta?</button>
+              <button class="ai-suggestion-chip" onclick="setClaudeInput('tratamiento','Ayudame a encontrar un conflicto más fuerte')">Fortalecer conflicto</button>
+              <button class="ai-suggestion-chip" onclick="setClaudeInput('tratamiento','¿Cómo divido esta historia en tres actos?')">Estructura en actos</button>
             </div>
-            <div style="padding:8px 16px;border-top:1px solid rgba(65,174,214,0.05);">
-              <button class="btn btn-primary" onclick="analizarTratamiento()" style="width:100%;margin-bottom:8px;">◐ Analizar lo que escribí</button>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="ai-suggestion-chip" onclick="quickPrompt('tratamiento','¿Cuál es el conflicto central de esta historia? ¿Lo ves claro?')">¿Dónde está el conflicto?</button>
-                <button class="ai-suggestion-chip" onclick="quickPrompt('tratamiento','¿Cuál es la pregunta central que hace esta historia?')">Pregunta central</button>
-                <button class="ai-suggestion-chip" onclick="quickPrompt('tratamiento','¿Qué le falta a esta historia para funcionar dramáticamente?')">¿Qué le falta?</button>
-                <button class="ai-suggestion-chip" onclick="quickPrompt('tratamiento','Ayudame a encontrar un conflicto más fuerte para esta historia')">Fortalecer conflicto</button>
-                <button class="ai-suggestion-chip" onclick="quickPrompt('tratamiento','¿Cómo puedo dividir esta historia en una estructura de tres actos?')">Estructura en actos</button>
-              </div>
-            </div>
-            <div class="ai-input-area">
-              <textarea id="tratamiento-input" placeholder="Preguntá o pedile que profundice algo..." rows="1" onkeydown="handleEnter(event,'tratamiento')"></textarea>
-              <button class="ai-send" onclick="sendMessage('tratamiento')" id="tratamiento-send">➤</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn btn-primary" onclick="consultarClaude('tratamiento')" style="flex:1;">Copiar mensaje para Claude →</button>
+              <span class="claude-copied" id="copied-tratamiento">✓ Copiado</span>
             </div>
           </div>
         </div>
@@ -487,20 +483,19 @@
             <span class="script-legend transicion-legend">■ Transición</span>
           </div>
         </div>
-        <div class="ai-panel">
-          <div class="panel-header">IA · Consultor Cinematográfico</div>
-          <div class="ai-messages" id="guion-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Hola, More. Estoy acá para trabajar este guion con vos. Puedo analizar escenas, sugerir cortes, pensar la estructura dramática, recomendar referencias o ayudarte a economizar el rodaje. ¿Por dónde empezamos?</div>
+        <div class="claude-consult-panel" style="display:flex;flex-direction:column;height:calc(100vh - 280px);">
+          <div class="panel-label">◎ Consultar con Claude</div>
+          <p style="font-size:11px;color:var(--texto-dim);line-height:1.7;margin-bottom:12px;">Escribí tu duda sobre el guion y Claude te responde con análisis cinematográfico real.</p>
+          <textarea id="claude-guion-input" placeholder="Ej: ¿Qué escena sobra? ¿Cuánto puede durar? ¿Qué directores ver como referencia?" style="flex:1;"></textarea>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <button class="ai-suggestion-chip" onclick="setClaudeInput('guion','¿Qué escena sobra o se torna monótona?')">¿Qué escena sobra?</button>
+            <button class="ai-suggestion-chip" onclick="setClaudeInput('guion','¿Cómo puedo economizar este proyecto?')">Economizar</button>
+            <button class="ai-suggestion-chip" onclick="setClaudeInput('guion','¿Cuánto puede durar esta historia?')">Duración estimada</button>
+            <button class="ai-suggestion-chip" onclick="setClaudeInput('guion','¿Qué directores debería ver como referencia?')">Referencias</button>
           </div>
-          <div class="ai-suggestions">
-            <button class="ai-suggestion-chip" onclick="quickPrompt('guion','¿Qué escena sobra o se torna monótona?')">¿Qué escena sobra?</button>
-            <button class="ai-suggestion-chip" onclick="quickPrompt('guion','¿Cómo puedo economizar este proyecto?')">Economizar</button>
-            <button class="ai-suggestion-chip" onclick="quickPrompt('guion','¿Cuánto puede durar esta historia?')">Duración estimada</button>
-            <button class="ai-suggestion-chip" onclick="quickPrompt('guion','¿Qué directores debería ver como referencia?')">Referencias</button>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="guion-input" placeholder="Preguntá lo que necesités..." rows="1" onkeydown="handleEnter(event,'guion')"></textarea>
-            <button class="ai-send" onclick="sendMessage('guion')" id="guion-send">➤</button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn btn-primary" onclick="consultarClaude('guion')" style="flex:1;">Copiar mensaje para Claude →</button>
+            <span class="claude-copied" id="copied-guion">✓ Copiado</span>
           </div>
         </div>
       </div>
@@ -517,16 +512,12 @@
         <button class="btn btn-primary" onclick="addNote()">+ Agregar idea</button>
       </div>
       <div class="notes-grid" id="notes-grid"></div>
-      <div style="margin-top:28px;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Ideas</div>
-        <div class="ai-panel" style="height:300px;border-radius:0 0 6px 6px;">
-          <div class="ai-messages" id="ideas-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Contame una imagen, una emoción, una escena. La desarrollamos juntas.</div>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="ideas-input" placeholder="Una imagen, una escena, una duda..." rows="1" onkeydown="handleEnter(event,'ideas')"></textarea>
-            <button class="ai-send" onclick="sendMessage('ideas')" id="ideas-send">➤</button>
-          </div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Consultar con Claude</div>
+        <textarea id="claude-ideas-input" placeholder="Ej: ¿Esta idea tiene potencial? ¿Cómo la desarrollo? ¿Qué conflicto le agregarías?"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('ideas')" style="flex:1;">Copiar mensaje para Claude →</button>
+          <span class="claude-copied" id="copied-ideas">✓ Copiado</span>
         </div>
       </div>
     </div>
@@ -546,16 +537,16 @@
         <div class="sequence-preview" id="sequence-preview"><div style="color:var(--texto-dim);font-size:11px;padding:20px 0;">Los planos aparecerán acá en orden.</div></div>
       </div>
       <div class="storyboard-grid" id="storyboard-grid"></div>
-      <div style="margin-top:28px;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Consultor de Imagen</div>
-        <div class="ai-panel" style="height:300px;border-radius:0 0 6px 6px;">
-          <div class="ai-messages" id="storyboard-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Puedo analizar tus planos, sugerirte movimientos de cámara, tipos de lente, iluminación o transiciones. ¿Sobre qué plano trabajamos?</div>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="storyboard-input" placeholder="Describí el plano o preguntá sobre la secuencia..." rows="1" onkeydown="handleEnter(event,'storyboard')"></textarea>
-            <button class="ai-send" onclick="sendMessage('storyboard')" id="storyboard-send">➤</button>
-          </div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Consultar con Claude</div>
+        <textarea id="claude-storyboard-input" placeholder="Ej: ¿Qué ángulo uso en el plano 3? ¿Cómo mejoro la secuencia? ¿Qué movimiento de cámara recomendás?"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('storyboard','¿Cómo mejoro la secuencia de planos que tengo?')">Mejorar secuencia</button>
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('storyboard','¿Qué movimientos de cámara recomendás para esta historia?')">Movimientos de cámara</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('storyboard')" style="flex:1;">Copiar mensaje para Claude →</button>
+          <span class="claude-copied" id="copied-storyboard">✓ Copiado</span>
         </div>
       </div>
     </div>
@@ -572,16 +563,12 @@
         <div class="mood-add" onclick="addMoodImage()"><span>+</span>Agregar imagen</div>
       </div>
       <input type="file" id="mood-upload" accept="image/*" style="display:none" multiple onchange="handleMoodUpload(event)">
-      <div style="margin-top:20px;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Atmósfera Visual</div>
-        <div class="ai-panel" style="height:280px;border-radius:0 0 6px 6px;">
-          <div class="ai-messages" id="moodboard-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Describime la atmósfera que buscás y te sugiero referencias visuales, directores o paletas de color.</div>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="moodboard-input" placeholder="¿Qué atmósfera buscás para este proyecto?" rows="1" onkeydown="handleEnter(event,'moodboard')"></textarea>
-            <button class="ai-send" onclick="sendMessage('moodboard')" id="moodboard-send">➤</button>
-          </div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Consultar con Claude</div>
+        <textarea id="claude-moodboard-input" placeholder="Ej: ¿Qué directores tienen esta estética? ¿Qué paleta de color recomendás para esta historia?"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('moodboard')" style="flex:1;">Copiar mensaje para Claude →</button>
+          <span class="claude-copied" id="copied-moodboard">✓ Copiado</span>
         </div>
       </div>
     </div>
@@ -596,19 +583,16 @@
       <div class="section-sub">La luz no decora. Revela.</div>
       <div class="notes-grid" id="lighting-grid"></div>
       <button class="btn btn-ghost" onclick="addLightingNote()" style="margin-bottom:20px;">+ Agregar nota de luz</button>
-      <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Diseño de Luz</div>
-      <div class="ai-panel" style="height:300px;border-radius:0 0 6px 6px;">
-        <div class="ai-messages" id="iluminacion-messages">
-          <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>La iluminación en tu cine es teológica — la luz revela. Contame qué escena o qué emoción querés iluminar y pensamos juntas cómo hacerlo.</div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Consultar con Claude</div>
+        <textarea id="claude-iluminacion-input" placeholder="Ej: ¿Cómo ilumino esta escena con pocos recursos? ¿Qué referencias de iluminación estudiar?"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('iluminacion','¿Cómo ilumino una escena de contemplación con pocos recursos?')">Contemplación</button>
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('iluminacion','¿Cómo crear luz natural sin equipo costoso?')">Sin presupuesto</button>
         </div>
-        <div class="ai-suggestions">
-          <button class="ai-suggestion-chip" onclick="quickPrompt('iluminacion','¿Cómo ilumino una escena de contemplación con pocos recursos?')">Contemplación</button>
-          <button class="ai-suggestion-chip" onclick="quickPrompt('iluminacion','¿Qué referencias de iluminación debo estudiar?')">Referencias</button>
-          <button class="ai-suggestion-chip" onclick="quickPrompt('iluminacion','¿Cómo crear luz natural sin equipo costoso?')">Sin presupuesto</button>
-        </div>
-        <div class="ai-input-area">
-          <textarea id="iluminacion-input" placeholder="Describí la escena o la emoción que querés iluminar..." rows="1" onkeydown="handleEnter(event,'iluminacion')"></textarea>
-          <button class="ai-send" onclick="sendMessage('iluminacion')" id="iluminacion-send">➤</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('iluminacion')" style="flex:1;">Copiar mensaje para Claude →</button>
+          <span class="claude-copied" id="copied-iluminacion">✓ Copiado</span>
         </div>
       </div>
     </div>
@@ -662,20 +646,17 @@
             <div id="sound-scenes-list" style="padding:12px 16px;"></div>
           </div>
 
-          <!-- IA Sonido -->
-          <div class="ai-panel" style="height:340px;flex-shrink:0;">
-            <div class="panel-header">IA · Diseño Sonoro</div>
-            <div class="ai-messages" id="sonido-messages">
-              <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Tenés el guion a la izquierda. Señalame una escena específica y pensamos juntas qué suena — y qué calla.</div>
+          <!-- CONSULTAR CON CLAUDE - SONIDO -->
+          <div class="claude-consult-panel" style="flex-shrink:0;">
+            <div class="panel-label">◎ Consultar con Claude</div>
+            <textarea id="claude-sonido-input" placeholder="Ej: ¿Cómo diseño el silencio en la escena del incendio? ¿Qué música recomendás?"></textarea>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <button class="ai-suggestion-chip" onclick="setClaudeInput('sonido','¿Cómo diseño el silencio en la escena más emotiva?')">Silencio emotivo</button>
+              <button class="ai-suggestion-chip" onclick="setClaudeInput('sonido','¿Dónde el sonido puede reemplazar al diálogo?')">Sonido sin diálogo</button>
             </div>
-            <div class="ai-suggestions">
-              <button class="ai-suggestion-chip" onclick="quickPrompt('sonido','¿Cómo diseño el silencio en la escena más emotiva del guion?')">Silencio emotivo</button>
-              <button class="ai-suggestion-chip" onclick="quickPrompt('sonido','¿Qué música o sonido ambiente recomendás para este guion?')">Música / ambiente</button>
-              <button class="ai-suggestion-chip" onclick="quickPrompt('sonido','¿Dónde el sonido puede reemplazar al diálogo en este guion?')">Sonido en lugar de diálogo</button>
-            </div>
-            <div class="ai-input-area">
-              <textarea id="sonido-input" placeholder="'En la escena del incendio, ¿qué escuchamos?'..." rows="1" onkeydown="handleEnter(event,'sonido')"></textarea>
-              <button class="ai-send" onclick="sendMessage('sonido')" id="sonido-send">➤</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn btn-primary" onclick="consultarClaude('sonido')" style="flex:1;">Copiar mensaje para Claude →</button>
+              <span class="claude-copied" id="copied-sonido">✓ Copiado</span>
             </div>
           </div>
 
@@ -694,20 +675,16 @@
         <button class="btn btn-primary" onclick="addLocation()">+ Agregar locación</button>
       </div>
       <div id="locations-list"></div>
-      <div style="margin-top:20px;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Locaciones</div>
-        <div class="ai-panel" style="height:280px;border-radius:0 0 6px 6px;">
-          <div class="ai-messages" id="locaciones-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Describime la atmósfera o emoción que necesitás para una escena y te sugiero tipos de locación, cómo encontrarlas con bajo presupuesto o cómo transformar un espacio simple.</div>
-          </div>
-          <div class="ai-suggestions">
-            <button class="ai-suggestion-chip" onclick="quickPrompt('locaciones','¿Cómo encontrar locaciones interesantes sin presupuesto en Argentina?')">Sin presupuesto</button>
-            <button class="ai-suggestion-chip" onclick="quickPrompt('locaciones','¿Cómo transformar una locación simple en algo cinematográfico?')">Transformar espacio</button>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="locaciones-input" placeholder="¿Qué necesita esta escena espacialmente?" rows="1" onkeydown="handleEnter(event,'locaciones')"></textarea>
-            <button class="ai-send" onclick="sendMessage('locaciones')" id="locaciones-send">➤</button>
-          </div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Consultar con Claude</div>
+        <textarea id="claude-locaciones-input" placeholder="Ej: ¿Cómo transformar un espacio simple en algo cinematográfico? ¿Cómo encontrar locaciones sin presupuesto?"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('locaciones','¿Cómo encontrar locaciones interesantes sin presupuesto en Argentina?')">Sin presupuesto</button>
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('locaciones','¿Cómo transformar una locación simple en algo cinematográfico?')">Transformar espacio</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('locaciones')" style="flex:1;">Copiar mensaje para Claude →</button>
+          <span class="claude-copied" id="copied-locaciones">✓ Copiado</span>
         </div>
       </div>
     </div>
@@ -730,60 +707,48 @@
       </table>
       <button class="btn btn-ghost" onclick="addBudgetRow()" style="margin-bottom:16px;">+ Agregar ítem</button>
       <button class="btn btn-primary" onclick="downloadBudget()" style="margin-left:8px;">Descargar CSV</button>
-      <div style="margin-top:28px;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Presupuesto</div>
-        <div class="ai-panel" style="height:280px;border-radius:0 0 6px 6px;">
-          <div class="ai-messages" id="presupuesto-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Puedo ayudarte a estimar costos, reducir gastos sin perder calidad cinematográfica, o pensar qué se puede conseguir sin pagar. ¿Por dónde empezamos?</div>
-          </div>
-          <div class="ai-suggestions">
-            <button class="ai-suggestion-chip" onclick="quickPrompt('presupuesto','¿Cómo puedo reducir costos sin perder calidad cinematográfica?')">Reducir costos</button>
-            <button class="ai-suggestion-chip" onclick="quickPrompt('presupuesto','¿Qué puedo conseguir sin pagar?')">Conseguir gratis</button>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="presupuesto-input" placeholder="¿Sobre qué ítem o decisión querés consejo?" rows="1" onkeydown="handleEnter(event,'presupuesto')"></textarea>
-            <button class="ai-send" onclick="sendMessage('presupuesto')" id="presupuesto-send">➤</button>
-          </div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Consultar con Claude</div>
+        <textarea id="claude-presupuesto-input" placeholder="Ej: ¿Cómo reducir costos sin perder calidad? ¿Qué puedo conseguir sin pagar?"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('presupuesto','¿Cómo puedo reducir costos sin perder calidad cinematográfica?')">Reducir costos</button>
+          <button class="ai-suggestion-chip" onclick="setClaudeInput('presupuesto','¿Qué puedo conseguir sin pagar?')">Conseguir gratis</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('presupuesto')" style="flex:1;">Copiar mensaje para Claude →</button>
+          <span class="claude-copied" id="copied-presupuesto">✓ Copiado</span>
         </div>
       </div>
     </div>
 
-    <!-- ANÁLISIS IA -->
+    <!-- ANÁLISIS / CONSULTA CON CLAUDE -->
     <div class="module-content" id="mod-analisis">
       <div class="module-epigraph">
         <div class="epi-text">"No buscamos que el espectador salga repitiendo una conclusión. Buscamos que salga viendo el mundo de otra manera."</div>
         <div class="epi-attr">More Flores</div>
       </div>
-      <div class="section-title">Análisis IA del proyecto</div>
-      <div class="section-sub">La IA lee tu proyecto completo y te da un análisis real, crítico y personalizado.</div>
+      <div class="section-title">Consultar con Claude</div>
+      <div class="section-sub">Armá tu consulta, copiala y pegala en Claude.ai para obtener análisis cinematográfico real.</div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:28px;">
-        <button class="analisis-btn" onclick="runAnalisis('festivales')">◈ Festivales recomendados</button>
-        <button class="analisis-btn" onclick="runAnalisis('directores')">◉ Directores de referencia</button>
-        <button class="analisis-btn" onclick="runAnalisis('peliculas')">▶ Películas que ver</button>
-        <button class="analisis-btn" onclick="runAnalisis('libros')">◎ Libros recomendados</button>
-        <button class="analisis-btn" onclick="runAnalisis('cortos')">◌ Cortos de referencia</button>
-        <button class="analisis-btn" onclick="runAnalisis('guion_critica')">✦ Crítica del guion</button>
-        <button class="analisis-btn" onclick="runAnalisis('estructura')">⬡ Estructura narrativa</button>
-        <button class="analisis-btn" onclick="runAnalisis('todo')">★ Análisis completo</button>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','Analizá este proyecto y recomendá festivales y concursos donde podría competir.')">◈ Festivales recomendados</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','¿Qué directores/directoras debería estudiar como referencia para este proyecto?')">◉ Directores de referencia</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','¿Qué películas debería ver para este proyecto?')">▶ Películas que ver</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','¿Qué libros me recomendás para este proyecto?')">◎ Libros recomendados</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','¿Qué cortometrajes debería ver como referencia?')">◌ Cortos de referencia</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','Hacé una crítica honesta del guion. ¿Qué funciona y qué no?')">✦ Crítica del guion</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','Analizá la estructura narrativa. ¿Tiene un arco claro? ¿Dónde está el conflicto?')">⬡ Estructura narrativa</button>
+        <button class="analisis-btn" onclick="setClaudeInput('analisis','Hacé un análisis completo del proyecto: estructura, fortalezas, debilidades y sugerencias.')">★ Análisis completo</button>
       </div>
 
-      <div id="analisis-result" style="display:none;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;" id="analisis-result-title">Análisis</div>
-        <div style="background:var(--negro-card);border:1px solid rgba(65,174,214,0.1);border-radius:0 0 6px 6px;padding:24px;font-size:13px;line-height:1.8;color:var(--texto);" id="analisis-result-body"></div>
-      </div>
-
-      <div style="margin-top:28px;">
-        <div class="panel-header" style="background:var(--negro-card);border-radius:6px 6px 0 0;padding:14px 20px;">IA · Consulta libre sobre el proyecto</div>
-        <div class="ai-panel" style="height:320px;border-radius:0 0 6px 6px;">
-          <div class="ai-messages" id="analisis-messages">
-            <div class="ai-msg assistant"><div class="msg-label">ADN · Consultor</div>Elegí un análisis arriba o preguntame lo que necesités sobre este proyecto. Leo el guion, las ideas, el storyboard — todo lo que cargaste.</div>
-          </div>
-          <div class="ai-input-area">
-            <textarea id="analisis-input" placeholder="¿A qué festival podría ir este proyecto? ¿Qué directora me recomendás estudiar? ¿Cómo reforzar la estructura?" rows="1" onkeydown="handleEnter(event,'analisis')"></textarea>
-            <button class="ai-send" onclick="sendMessage('analisis')" id="analisis-send">➤</button>
-          </div>
+      <div class="claude-consult-panel">
+        <div class="panel-label">◎ Tu consulta para Claude</div>
+        <textarea id="claude-analisis-input" placeholder="Escribí tu consulta o elegí una de arriba..." style="min-height:120px;"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-primary" onclick="consultarClaude('analisis')" style="flex:1;">Copiar mensaje completo para Claude →</button>
+          <span class="claude-copied" id="copied-analisis">✓ Copiado</span>
         </div>
+        <p style="font-size:10px;color:var(--texto-dim);margin-top:10px;line-height:1.6;">El mensaje incluye automáticamente el guion, las ideas, el storyboard y toda la info del proyecto para que Claude tenga contexto completo.</p>
       </div>
     </div>
 
@@ -1708,6 +1673,59 @@ function updateSoundMirror(p) {
 
 function loadSoundMirror(p) {
   updateSoundMirror(p);
+}
+
+// CONSULTAR CON CLAUDE
+function setClaudeInput(modulo, texto) {
+  const el = document.getElementById(`claude-${modulo}-input`);
+  if (el) { el.value = texto; el.focus(); }
+}
+
+function consultarClaude(modulo) {
+  const p = getProject(currentProjectId);
+  const inputEl = document.getElementById(`claude-${modulo}-input`);
+  const duda = inputEl ? inputEl.value.trim() : '';
+
+  const contexto = `=== PROYECTO ADN: "${p.title}" (${p.type}) ===
+Género: ${p.genre||'—'} | Descripción: ${p.desc||'—'}
+
+TRATAMIENTO:
+${p.tratamientoText||'(sin tratamiento)'}
+
+GUION:
+${p.guion||'(sin guion)'}
+
+IDEAS:
+${(p.notes||[]).map((n,i)=>`${i+1}. ${n.text}`).filter(n=>n.trim()).join('\n')||'(sin ideas)'}
+
+STORYBOARD (${(p.shots||[]).length} planos):
+${(p.shots||[]).map((s,i)=>`P${i+1}: ${s.desc} — ${s.type}, ${s.movement}, Luz: ${s.light||'—'}`).join('\n')||'(sin planos)'}
+
+ILUMINACIÓN: ${(p.lighting||[]).map(l=>l.text).filter(Boolean).join(' / ')||'(sin notas)'}
+SONIDO: Música: ${(p.sound||{}).music||'—'} / Ambiente: ${(p.sound||{}).ambient||'—'}
+LOCACIONES: ${(p.locations||[]).map(l=>l.name).join(', ')||'(sin locaciones)'}
+PRESUPUESTO: $${(p.budget||[]).reduce((s,r)=>s+(parseFloat(r.cost)||0),0).toLocaleString('es-AR')}`;
+
+  const mensaje = duda ? `${duda}\n\n${contexto}` : contexto;
+
+  const copiar = () => {
+    const copiedEl = document.getElementById(`copied-${modulo}`);
+    if (copiedEl) { copiedEl.style.display='inline'; setTimeout(()=>{copiedEl.style.display='none';},3000); }
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(mensaje).then(copiar).catch(() => copiarFallback(mensaje, copiar));
+  } else {
+    copiarFallback(mensaje, copiar);
+  }
+}
+
+function copiarFallback(texto, callback) {
+  const ta = document.createElement('textarea');
+  ta.value = texto; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); if(callback)callback(); } catch(e){}
+  document.body.removeChild(ta);
 }
 
 function loadScriptContent(p) {
