@@ -1753,27 +1753,15 @@ async function loadFestivales() {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         model: 'claude-sonnet-4-6', max_tokens: 1000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        system: `Sos un experto en festivales de cine, concursos y becas cinematográficas. Respondés SOLO en JSON válido, sin texto adicional, sin markdown.`,
+        system: `Sos un experto en festivales de cine, concursos y becas cinematográficas de Argentina e internacionales. Respondés SOLO en JSON válido, sin texto adicional, sin markdown, sin bloques de código.`,
         messages: [{
           role: 'user',
-          content: `Buscá festivales de cine, concursos y becas cinematográficas actuales de 2025-2026, tanto de Argentina como internacionales, para directores emergentes de cine de autor, ficción y documental. Incluí convocatorias abiertas o próximas a abrir.
+          content: `Listá festivales de cine, concursos y becas cinematográficas actuales de 2025-2026, tanto de Argentina como internacionales, para directores emergentes de cine de autor, ficción y documental.
 
-Respondé ÚNICAMENTE con este JSON (sin texto adicional):
-{
-  "oportunidades": [
-    {
-      "nombre": "nombre del festival/concurso/beca",
-      "tipo": "festival|concurso|beca",
-      "alcance": "argentina|internacional",
-      "descripcion": "descripción breve de 1-2 oraciones",
-      "plazo": "fecha límite o estado de convocatoria",
-      "categorias": "categorías relevantes",
-      "url": "url oficial si la conocés"
-    }
-  ]
-}
-Incluí al menos 12 oportunidades variadas y reales.`
+Respondé ÚNICAMENTE con este JSON (sin texto adicional, sin markdown):
+{"oportunidades":[{"nombre":"nombre","tipo":"festival","alcance":"argentina","descripcion":"descripción breve","plazo":"fecha o estado","categorias":"categorías","url":"url oficial"}]}
+
+Incluí al menos 12 oportunidades reales y variadas.`
         }]
       })
     });
@@ -1784,7 +1772,7 @@ Incluí al menos 12 oportunidades variadas y reales.`
     festivalesData = parsed.oportunidades || [];
     renderFestivales();
   } catch(e) {
-    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◈</div><p>No se pudo cargar. Verificá tu conexión e intentá de nuevo.</p></div>';
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◈</div><p>No se pudo cargar. Intentá de nuevo.</p></div>';
   }
 }
 
